@@ -49,49 +49,39 @@ while True:
 	client_sock, client_info = server_sock.accept()
 	print "Accepted connection from ", client_info
 	try:
-		# Read data from Android app
+		# Read data from Android app, write to Arduino
 		data = client_sock.recv(1024)
 	    #if len(data) == 0: break
-		print "received [%s]" % data
+		print "[NEXUS] sent: %s" % data
 		# Button 1 was pressed
 		if data == 'test1':
-			#data = 'Test 1: Pin 11!'
-			data = '1'
+			ser.write('1')
 			GPIO.output(11, True)
 			GPIO.output(13, False)
+
 		# Button 2 was pressed
 		elif data == 'test2':
-			#data = 'Test 2: Pin 13!'
-			data = '2'
+			ser.write('2')
 			GPIO.output(11, False)
 			GPIO.output(13, True)
+			
 		# Failed data transfer
 		else:
-			#data = 'Fail!'
 			GPIO.output(11, False)
 			GPIO.output(13, False) 
-		data = ""
-		# Read data from Arduino
-		#for i in range(0,2):
-		#data+=str(ser.read())
-			#print "from ard: [%s]" % data
 
-
-		# Communication to Arduino:
-		ser.write(data)
-		while(ser.read() != 'r'):
-			print "waiting to start arduino connection"
-			
-		ser.write('r')
+		# Wait for sync up
+		print "[RPi] send to [ARDUINO]: %s" % data
 		time.sleep(.5)
-		data = str(ser.readline())
-		ser.write('d')
-		print "Received %s from" % data
 
+		# Read from Arduino
+		readD = str(ser.readline())
+		print "[ARDUINO] sent: %s" % readD
 
 		# Send data from Arduino back to Android app
-		client_sock.send(data)
-		print "sending [%s]" % data
+		client_sock.send(readD)
+		print "[RPi] send to [NEXUS]: %s" % readD
+		data = ""
 
 
 	except IOError:
